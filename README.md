@@ -1,12 +1,8 @@
 # TypingTest
-Java TypingTest using console as the UI.
+Simple Java TypingTest using console as the UI.
 
-TODO:
-- error counter comparing the two stringArrays
-  - String to String[] ???
-- implementing the errors in the final score
-  - removing one word from the total number of typed words every time there's an error
-- precision ???
-- as many tries as the user wants
-  - everytime user gets his score, he can try again and decide how many words he wants to type
-  - storing of the scores so user can see his average (WPM, errors, precision...) score when he quits
+Project complete!
+
+User is asked how many words he wants to type, computer will take as manny random words from the "parole.txt" file.
+Now user has to type those words as fast as he can, and has to be careful of making typos! They will affect the final score.
+When user decides to quit the game, he will be shown the total stats of his previous games.
