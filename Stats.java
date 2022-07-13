@@ -1,53 +1,96 @@
 package typingtest;
 
-public class Stats {
-
-	public static int calculateWPM(double start, double end, String str)		//nanosec Start, nanosec End, typedWords
+public class Stats
+{
+	public static int calculateWPM(double start, double end, String str)
 	{
-		double nanoDiff = end - start;			//total time in nanoseconds
+		//calculate Words Per Minute after one game
+		
+		double nanoDiff = end - start;					//total time in nanoseconds
 		double totalSecs = nanoDiff / 1000000000.0;		//nanoseconds to seconds
 		
-		//calculate Words Per Minute: (xChars/5) / 1minute 
+		//calculate WPM: (totalChars/5)/1minute
 		int totalChars = str.length();
 		int wpm = (int)((((double) totalChars / 5) / totalSecs) * 60);
-			//double casting prevents losing data from the int division totalChars/5
-	        //int casting in order to convert the final result (double) to an integer
-		
+			//double casting: no data lost when dividing integers
+			//int casting: converts final result to an integer
 		return wpm;
 	}
 	
-	/*
-	public static boolean checkLength(String a[], String b[])
+	public static int errorCount(String[] generatedWords, String userInput, int n)
 	{
-		if (a.length == b.length)
-			return true;
-		else
-			return false;
-	}
-	*/
-	
-	//IN: String[] randomWords, String typedWords
-	public static int errorCount(String a[], String b, int n)		//A randomWords (array of strings), B typedWords (string)
-	{
-		//first we convert B to an string array
-		String[] newB = "b".split("");
+		//compares two stringsArrays word by word
 		
-		//error count
+		//String randomWords[] = new String[generatedWords.size()];		//convert list to array
+		//generatedWords.toArray(randomWords);
+		String newUserInput[] = userInput.split(" ");			//convert user-typed string to array
 		int err = 0;
-		for (int i=0; i<n; i++) {
-			if(a[i] == newB[i]);
+		for(int i=0; i<n; i++) {
+			if (generatedWords[i].contentEquals(newUserInput[i]))
+				err = err + 0;
+			else {
 				err++;
+			}
 		}
-		
 		return err;
 	}
 	
-	//string to string array test
-	public static void arrayTest(String x, int n)
+	public static int scoreWithErrors(double start, double end, String str, int errors)
 	{
-		String[] newX = "x".split("");
-		for (int i=0; i<n; i++) {
-			System.out.print(newX[i] + " ");
-		}
+		//calculates the final score including the errors in the wpm calculation
+		
+		int score = 0;
+		int totalChars = str.length();
+		double nanoDiff = end - start;
+		double totalSecs = nanoDiff / 1000000000.0;
+		
+		if (errors != 0)
+			score = (int)(((((double) totalChars / 5) - errors) / totalSecs) * 60);
+				else
+			score = (int)((((double) totalChars / 5) / totalSecs) * 60);
+		return score;
+	}
+	
+	public static float averageWPM(int totalWPM, int cont)
+	{
+		//calculates the average WPM score
+		
+		float avg = totalWPM / cont;
+		return avg;
+	}
+	
+	public static float averageErrors(int totalErr, int cont)
+	{
+		//calculates the average number of errors
+		
+		float avg = totalErr / cont;
+		return avg;
+	}
+	
+	public static int maximumWPM(int max, int wpm)
+	{
+		//returns the maximum WPM reached
+		
+		if (wpm > max)
+			max = wpm;
+		return max;
+	}
+	
+	public static int minimumWPM(int min, int wpm)
+	{
+		//returns the minimum WPM reached
+		
+		if (wpm < min)
+			min = wpm;
+		return min;
+	}
+	
+	public static int highScore(int hs, int score)
+	{
+		//return the best score
+		
+		if (score > hs)
+			hs = score;
+		return hs;
 	}
 }

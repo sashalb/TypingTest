@@ -1,125 +1,105 @@
 package typingtest;
-import java.io.*;
+
+import java.io.IOException;
 import java.time.LocalTime;
 import java.util.ArrayList;
-import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 public class Starter
 {
-    //only one Scanner Declaration for the whole program
-    static Scanner scan = new Scanner(System.in);
+	static Scanner scan = new Scanner(System.in);
+	static String FilePath = "C:\\Users\\pacho\\eclipse-workspace\\NewTypingTest\\src\\typingtest\\parole.txt";
+	static int loopCounter = 0;
+	static int sumWPM, sumErr = 0;
+	static float avgWPM, avgErr = 0;
+	static int maxWPM = 0;
+	static int minWPM = 1000;
+	static int highScore = 0;
+	//static ArrayList<String> generatedWords;	//has to be filled with the random generated words
+	static String generatedWords[];
 
-    //path of words file
-    static String FilePath = "C:\\Users\\pacho\\eclipse-workspace\\TypingTest2\\src\\typingtest\\parole.txt";
-    
-    //static int n = 0;
-    //static String typedWords = "";
-
-
-    public static void main(String[] args) throws InterruptedException, IOException
-    {
-        //start
-        System.out.println("*** TYPING TEST! ***");
-        
-        //check if the words file exists
-        File f = new File(FilePath);	
-        if (f.exists()) {
-            TimeUnit.SECONDS.sleep(1);
-            System.out.println();
-            System.out.print("Inserisci il numero di parole da scrivere: ");
-            int n = scan.nextInt();
-
-            try {    		 
-                if (GenerateRandomWords(n));
-                    ManageWords();	    
-                    
-            } catch (Exception ex) {
-                System.out.println("Si è verificato un errore: " + ex.getMessage());
-            }
-    }
-        else
-            System.out.println("File " + FilePath + " non esistente!");
-    }
-
-    //GenerateRandomWords() = user input (number of words) + words generation
-    //if user types a word number !=0 && <= totalWords in the file, return true
-    	//else, we can't proceed
-    //if true, generate that exact number of random words taken from the file
-
-    private static Boolean GenerateRandomWords(int n) throws IOException, InterruptedException
-    {
-    	//countdown
-        TimeUnit.SECONDS.sleep(1);
-        System.out.println("Riscrivi le parole tra 3");
-        TimeUnit.SECONDS.sleep(1);
-        System.out.println("Riscrivi le parole tra 2");
-        TimeUnit.SECONDS.sleep(1);
-        System.out.println("Riscrivi le parole tra 1");
-        TimeUnit.SECONDS.sleep(1);
-
-        System.out.println();
-        
-    	//list containing the words file
-        ArrayList<String> WordsFileList = new ArrayList<String>();
-
-        //load words from the file
-        FileReader file = new FileReader(FilePath);
-        BufferedReader buff = new BufferedReader(file);
-
-        //reading the whole line as a string
-        String line = buff.readLine();
-
-        //check EOF
-        while (line != null) {
-            WordsFileList.add(line);
-            line = buff.readLine();
-        }
-        
-        buff.close();
-        
-        if (n>0 && n<=WordsFileList.size()) {
-            //convert list to array
-            String randomWords[] = WordsFileList.toArray(new String[WordsFileList.size()]);
-            
-            //print the words
-            Random rand = new Random();
-
-            for (int i=0; i<n; i++) {
-                System.out.print(randomWords[rand.nextInt(randomWords.length)] + " ");		//generate random words from array
-            }
-        }
-        else
-            return false;
-
-        System.out.println();
-        return true;
-	    
-    }
-
-    //ManageWords() = user input (words typed) + WPM calculation
-    //user types requested words and the program calculates WPM
-    
-    private static void ManageWords() throws IOException
-    {
-        double nanoSecondStart = LocalTime.now().toNanoOfDay();		//nanosecond start (words are generated)
-
-        try {
-            scan = new Scanner(System.in);		//recreate Scanner Object to prevent "No line found" error
-
-            String typedWords = "";
-            typedWords = scan.nextLine();
-
-            double nanoSecondEnd = LocalTime.now().toNanoOfDay();	//nanosecond end (user presses Enter)
-            
-            int wpm = Stats.calculateWPM(nanoSecondStart, nanoSecondEnd, typedWords);
-
-            System.out.println("WPM: " + wpm + ".");            
-        }
-        finally {
-            if (scan != null)
-                scan.close();
-        }
-    }
+	public static void main(String[] args) throws IOException, InterruptedException
+	{
+		//start
+		if (!InputOutput.startGame(FilePath)) {
+			//file cannot be found
+			System.out.println("File " + FilePath + " non esistente!");
+		} else
+		{
+			//here the file exists
+			ArrayList<String> ListOfWords = InputOutput.readFile(FilePath);
+			int MaxNumberOfWords = ListOfWords.size();
+			TimeUnit.SECONDS.sleep(1);
+			
+			try {
+				boolean ContinueProcess = true;
+				while (ContinueProcess) {
+					int n = InputOutput.askForNumber(MaxNumberOfWords);
+					if (GenerateRandomWords(n)) {
+						ManageWords(n, generatedWords);		//here n != 0
+					} else {								//here the conditions are not satisfied: exit or retry
+						if (n == 0) {
+							InputOutput.finalStats(loopCounter, highScore, avgWPM, avgErr, maxWPM, minWPM);
+							ContinueProcess = false;
+						} else {							//here user has to retry typing the number
+							System.out.println("Numero non accettato, riprovare.");
+						}
+					}
+				}
+				
+			} catch (Exception ex) {
+				System.out.println("Si è verificato un errore: " + ex.getMessage());
+			}
+		}					
+	}
+	
+	private static boolean GenerateRandomWords(int n) throws InterruptedException, IOException
+	{
+		//generates the number of random words input by user
+		//input must satisfy the conditions
+		
+		ArrayList<String> ListOfWords = InputOutput.readFile(FilePath);
+		int MaxNumberOfWords = ListOfWords.size();
+		if (n>0 && n<=MaxNumberOfWords) {
+			loopCounter++;
+			InputOutput.countDown(loopCounter);
+			generatedWords = InputOutput.printRandomWords(ListOfWords, n);
+		} else
+			return false;
+		
+		System.out.println();
+		return true;
+	}
+	
+	private static void ManageWords(int n, String[] generatedWords) throws IOException
+	{
+		//user types the words + calculate WPM
+		
+		double nanoSecondStart = LocalTime.now().toNanoOfDay();			//storing the nanosecond the words are generated
+		try {
+			String typedWords = InputOutput.writeWords();
+			double nanoSecondEnd = LocalTime.now().toNanoOfDay();		//storing the nanosecond user finishes typing pressing enter
+			
+			int wpm = Stats.calculateWPM(nanoSecondStart, nanoSecondEnd, typedWords);
+			maxWPM = Stats.maximumWPM(maxWPM, wpm);
+			minWPM = Stats.minimumWPM(minWPM, wpm);
+			sumWPM = sumWPM + wpm;
+			avgWPM = Stats.averageWPM(sumWPM, loopCounter);
+			
+			int err = Stats.errorCount(generatedWords,  typedWords, n);
+			sumErr = sumErr + err;
+			avgErr = Stats.averageErrors(sumErr, loopCounter);
+			
+			int finalScore = Stats.scoreWithErrors(nanoSecondStart, nanoSecondEnd, typedWords, err);
+			highScore = Stats.highScore(highScore, finalScore);
+			System.out.println("WPM: " + wpm);
+			System.out.println("Parole sbagliate: " + err);
+			System.out.println("Punteggio finale: " + finalScore);
+			//System.out.println("Media WPM: " + avgWPM);
+			
+		} catch (Exception ex) {
+			System.out.println("Si è verificato un errore: " + ex.getMessage());
+		}
+	}
 }
